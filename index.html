@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pairwise LLM Response Annotation Tool</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 顶部：文件加载区域 -->
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <label class="upload-btn">
+        选择 JSON 文件
+        <input type="file" id="fileInput" accept=".json,application/json" hidden />
+      </label>
+      <button id="exportBtn" class="upload-btn export-btn" disabled>Export JSON</button>
+    </div>
+    <div class="toolbar-info">
+      <span><span class="info-label">Loaded:</span> <span id="fileName">—</span></span>
+      <span><span class="info-label">Total:</span> <span id="totalCount">0</span> items</span>
+      <span><span class="info-label">Progress:</span> <span id="progressText">0 / 0</span></span>
+    </div>
+  </header>
+
+  <!-- 进度条 -->
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+    <span class="progress-percent" id="progressPercent">0%</span>
+  </div>
+
+  <!-- 空状态提示 -->
+  <div id="emptyHint" class="empty-hint">
+    <p>请点击左上角「选择 JSON 文件」加载数据开始标注。</p>
+    <p class="hint-sub">快捷键：← 上一个 / → 下一个 / 1 选 A / 2 选 B / 3 Tie / 4 Both bad / Ctrl+S 保存</p>
+  </div>
+
+  <!-- 主标注区 -->
+  <main id="mainArea" class="hidden">
+
+    <!-- 卡片 -->
+    <div class="card">
+
+      <!-- Reflection 顶部区域 -->
+      <div class="reflection-section">
+        <div class="reflection-title">Reflection</div>
+        <p class="reflection-text" id="reflectionText"></p>
+        <div class="meta-row" id="metaRow"></div>
+      </div>
+
+      <!-- 中间 A/B 对比 -->
+      <div class="answers">
+        <div class="answer answer-a" id="answerA">
+          <div class="answer-title">
+            Response A
+            <span class="choice-badge" id="badgeA" style="display:none;">Annotator Choice</span>
+          </div>
+          <div class="rendered" id="renderedA"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="answer answer-b" id="answerB">
+          <div class="answer-title">
+            Response B
+            <span class="choice-badge" id="badgeB" style="display:none;">Annotator Choice</span>
+          </div>
+          <div class="rendered" id="renderedB"></div>
+        </div>
+      </div>
+
+      <!-- 标注功能区 -->
+      <section class="annotation-area">
+
+        <!-- Winner 选择 -->
+        <div class="annot-block">
+          <div class="annot-title">Winner <span class="required">*</span></div>
+          <div class="radio-group" id="winnerGroup">
+            <label><input type="radio" name="winner" value="A" /> Response A better</label>
+            <label><input type="radio" name="winner" value="B" /> Response B better</label>
+            <label><input type="radio" name="winner" value="Tie" /> Tie</label>
+            <label><input type="radio" name="winner" value="Both bad" /> Both bad</label>
+          </div>
+        </div>
+
+        <!-- 多维评分 -->
+        <div class="annot-block score-block">
+          <div class="score-col">
+            <div class="annot-title">Response A 评分</div>
+            <div class="score-row">
+              <span class="score-label">Correctness</span>
+              <div class="score-stars" data-target="a_correctness"></div>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Helpfulness</span>
+              <div class="score-stars" data-target="a_helpfulness"></div>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Personalization</span>
+              <div class="score-stars" data-target="a_personalization"></div>
+            </div>
+          </div>
+
+          <div class="score-col">
+            <div class="annot-title">Response B 评分</div>
+            <div class="score-row">
+              <span class="score-label">Correctness</span>
+              <div class="score-stars" data-target="b_correctness"></div>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Helpfulness</span>
+              <div class="score-stars" data-target="b_helpfulness"></div>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Personalization</span>
+              <div class="score-stars" data-target="b_personalization"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 标签系统 -->
+        <div class="annot-block">
+          <div class="annot-title">Tags</div>
+          <div class="tag-group" id="tagGroup"></div>
+        </div>
+
+        <!-- 人工备注 -->
+        <div class="annot-block">
+          <div class="annot-title">Annotator Notes</div>
+          <textarea id="noteInput" class="note-input" rows="3" placeholder="例如：Response A explains concept better. Response B gives wrong example."></textarea>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- 底部导航 -->
+    <footer class="nav-bar">
+      <button id="prevBtn" class="nav-btn">← Previous</button>
+      <div class="nav-index">
+        <input type="number" id="jumpInput" min="1" value="1" />
+        <span id="navIndexText">/ 0</span>
+        <button id="jumpBtn" class="nav-btn small">跳转</button>
+      </div>
+      <button id="saveBtn" class="nav-btn save-btn">Save</button>
+      <button id="nextBtn" class="nav-btn">Next →</button>
+    </footer>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

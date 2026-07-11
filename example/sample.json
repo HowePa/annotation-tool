@@ -1,0 +1,26 @@
+[
+  {
+    "reflection_id": "r000449",
+    "student_id": "2305518",
+    "lecture_id": 74,
+    "method_1": "non_memory",
+    "method_2": "few_retrieval",
+    "a_method": "few_retrieval",
+    "b_method": "non_memory",
+    "reflection": "Dijkstra algorithm but I will go over it by using past lectures",
+    "response_a": "It sounds like you want to reinforce your understanding of Dijkstra's algorithm by reviewing past lectures. Based on peer struggles, a common confusion regarding Dijkstra is how it handles \"backwards paths\" within a directed graph. Unlike Ford-Fulkerson, which explores residual edges to reroute flow, Dijkstra strictly moves forward from the source to unvisited nodes with the shortest known distance. It does not revisit nodes once finalized, nor does it use backward edges for rerouting.\n\nTo clarify, try re-watching the specific lecture segment where we initialized the priority queue and updated distances. Focus on why the algorithm only considers outgoing edges from the current node.",
+    "response_b": "It sounds like you're leaning on past lectures to clarify Dijkstra's algorithm, which is a great strategy! However, a common gap here is assuming the logic is identical to other shortest-path methods (like BFS). Dijkstra's unique step is the **greedy relaxation**: always selecting the *unvisited node with the smallest known distance* to explore next.\n\nTo solidify this, try tracing the algorithm manually on a small graph, strictly recording which node you pick at each step and why its distance was updated."
+  },
+  {
+    "reflection_id": "r000061",
+    "student_id": "2257218",
+    "lecture_id": 14,
+    "method_1": "non_memory",
+    "method_2": "few_retrieval",
+    "a_method": "few_retrieval",
+    "b_method": "non_memory",
+    "reflection": "the exact definition of completed binary tree",
+    "response_a": "It sounds like you're distinguishing between \"full\" and \"complete\" trees but need the precise definition of a **complete binary tree**. A complete binary tree is one where every level *except possibly the last* is completely filled, and all nodes in the last level are as far left as possible.\n\nGiven your previous questions about recursion in Boggle, try visualizing the tree level-by-level.",
+    "response_b": "It sounds like you're seeking clarity on what precisely makes a binary tree \"complete.\" A common point of confusion is distinguishing it from a \"full\" binary tree. A **complete** binary tree isn't just about being full; it's about *order*. Imagine filling a tree level by level, from left to right."
+  }
+]

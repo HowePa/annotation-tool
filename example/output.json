@@ -1,0 +1,43 @@
+[
+  {
+    "reflection_id": "r000449",
+    "human_label": {
+      "winner": "B",
+      "response_a_score": {
+        "correctness": 4,
+        "helpfulness": 3,
+        "personalization": 3
+      },
+      "response_b_score": {
+        "correctness": 5,
+        "helpfulness": 5,
+        "personalization": 4
+      },
+      "tags": [
+        "good example",
+        "actionable advice"
+      ],
+      "comment": "Response B identifies the core conceptual gap and gives an active learning strategy."
+    }
+  },
+  {
+    "reflection_id": "r000061",
+    "human_label": {
+      "winner": "A",
+      "response_a_score": {
+        "correctness": 5,
+        "helpfulness": 4,
+        "personalization": 4
+      },
+      "response_b_score": {
+        "correctness": 4,
+        "helpfulness": 4,
+        "personalization": 3
+      },
+      "tags": [
+        "good personalization"
+      ],
+      "comment": "Response A provides the precise definition with a clear visualization tip."
+    }
+  }
+]
