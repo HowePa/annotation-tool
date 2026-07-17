@@ -216,6 +216,71 @@ body {
 .rendered ul, .rendered ol { margin: 6px 0 10px 22px; }
 .rendered li { margin-bottom: 4px; }
 
+/* ===== 相关反思折叠列表 ===== */
+.reflection-lists {
+  margin-top: 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.reflection-toggle {
+  border: 1px solid #d7cfc4;
+  border-radius: 14px;
+  background: #faf7f2;
+  overflow: hidden;
+}
+
+.reflection-toggle summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reflection-toggle summary::-webkit-details-marker { display: none; }
+
+.reflection-toggle[open] summary {
+  border-bottom: 1px solid #e1d8ca;
+  background: #f4efe7;
+}
+
+.toggle-count {
+  min-width: 34px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #e7dfd4;
+  color: #5b5145;
+  font-size: 13px;
+  text-align: center;
+}
+
+.toggle-body {
+  padding: 12px 18px 16px 18px;
+}
+
+.reflection-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.reflection-list li {
+  line-height: 1.5;
+  color: #2b2b2b;
+}
+
+.empty-list-item {
+  color: #8a8174;
+  font-style: italic;
+}
+
 /* ===== 标注功能区 ===== */
 .annotation-area {
   margin-top: 28px;
@@ -259,85 +324,7 @@ body {
 .radio-group label.checked-A { border-color: #1565c0; background: #e3f2fd; color: #1565c0; }
 .radio-group label.checked-B { border-color: #ef6c00; background: #fff3e0; color: #ef6c00; }
 .radio-group label.checked-Tie { border-color: #2e7d32; background: #e8f5e9; color: #2e7d32; }
-.radio-group label.checked-Both { border-color: #c62828; background: #ffebee; color: #c62828; }
-
-/* ===== 评分 ===== */
-.score-block {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-}
-.score-col {
-  padding: 14px 18px;
-  border-radius: 14px;
-  border: 2px solid #eee;
-}
-.score-col:first-child { border-color: #bbdefb; background: #f7fbff; }
-.score-col:last-child { border-color: #ffe0b2; background: #fffaf3; }
-
-.score-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 10px 0;
-}
-.score-label {
-  font-weight: 700;
-  font-size: 14px;
-  color: #555;
-}
-.score-stars {
-  display: flex;
-  gap: 6px;
-}
-.star {
-  width: 28px;
-  height: 28px;
-  border: 2px solid #ccc;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 14px;
-  color: #999;
-  background: #fff;
-  transition: all .12s;
-  user-select: none;
-}
-.star:hover { border-color: #888; }
-.star.active {
-  background: #2e7d32;
-  border-color: #2e7d32;
-  color: #fff;
-}
-
-/* ===== 标签 ===== */
-.tag-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.tag-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 2px solid #ddd;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all .15s;
-  user-select: none;
-}
-.tag-item:hover { border-color: #aaa; }
-.tag-item input { cursor: pointer; }
-.tag-item.checked {
-  border-color: #2e7d32;
-  background: #e8f5e9;
-  color: #2e7d32;
-}
+.radio-group label.checked-None { border-color: #c62828; background: #ffebee; color: #c62828; }
 
 /* ===== 备注 ===== */
 .note-input {

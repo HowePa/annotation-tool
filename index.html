@@ -12,7 +12,7 @@
   <header class="toolbar">
     <div class="toolbar-left">
       <label class="upload-btn">
-        选择 JSON 文件
+        Choose JSON File
         <input type="file" id="fileInput" accept=".json,application/json" hidden />
       </label>
       <button id="exportBtn" class="upload-btn export-btn" disabled>Export JSON</button>
@@ -32,8 +32,8 @@
 
   <!-- 空状态提示 -->
   <div id="emptyHint" class="empty-hint">
-    <p>请点击左上角「选择 JSON 文件」加载数据开始标注。</p>
-    <p class="hint-sub">快捷键：← 上一个 / → 下一个 / 1 选 A / 2 选 B / 3 Tie / 4 Both bad / Ctrl+S 保存</p>
+    <p>Click “Choose JSON File” in the upper-left corner to load the data and begin annotation.</p>
+    <p class="hint-sub">Keyboard shortcuts: ← Previous / → Next / 1 Select A / 2 Select B / 3 Tie / 4 None / Ctrl+S Save</p>
   </div>
 
   <!-- 主标注区 -->
@@ -70,6 +70,29 @@
         </div>
       </div>
 
+      <!-- 相关反思折叠列表 -->
+      <section class="reflection-lists" aria-label="相关反思列表">
+        <details class="reflection-toggle" id="priorReflectionsToggle">
+          <summary>
+            Individual Prior Reflections
+            <span class="toggle-count" id="priorReflectionsCount">0</span>
+          </summary>
+          <div class="toggle-body">
+            <ul class="reflection-list" id="priorReflectionsList"></ul>
+          </div>
+        </details>
+
+        <details class="reflection-toggle" id="sameLectureToggle">
+          <summary>
+            Collective Peer Reflections
+            <span class="toggle-count" id="sameLectureCount">0</span>
+          </summary>
+          <div class="toggle-body">
+            <ul class="reflection-list" id="sameLectureList"></ul>
+          </div>
+        </details>
+      </section>
+
       <!-- 标注功能区 -->
       <section class="annotation-area">
 
@@ -77,58 +100,17 @@
         <div class="annot-block">
           <div class="annot-title">Winner <span class="required">*</span></div>
           <div class="radio-group" id="winnerGroup">
-            <label><input type="radio" name="winner" value="A" /> Response A better</label>
-            <label><input type="radio" name="winner" value="B" /> Response B better</label>
+            <label><input type="radio" name="winner" value="A" /> A </label>
+            <label><input type="radio" name="winner" value="B" /> B </label>
             <label><input type="radio" name="winner" value="Tie" /> Tie</label>
-            <label><input type="radio" name="winner" value="Both bad" /> Both bad</label>
+            <label><input type="radio" name="winner" value="None" /> None</label>
           </div>
-        </div>
-
-        <!-- 多维评分 -->
-        <div class="annot-block score-block">
-          <div class="score-col">
-            <div class="annot-title">Response A 评分</div>
-            <div class="score-row">
-              <span class="score-label">Correctness</span>
-              <div class="score-stars" data-target="a_correctness"></div>
-            </div>
-            <div class="score-row">
-              <span class="score-label">Helpfulness</span>
-              <div class="score-stars" data-target="a_helpfulness"></div>
-            </div>
-            <div class="score-row">
-              <span class="score-label">Personalization</span>
-              <div class="score-stars" data-target="a_personalization"></div>
-            </div>
-          </div>
-
-          <div class="score-col">
-            <div class="annot-title">Response B 评分</div>
-            <div class="score-row">
-              <span class="score-label">Correctness</span>
-              <div class="score-stars" data-target="b_correctness"></div>
-            </div>
-            <div class="score-row">
-              <span class="score-label">Helpfulness</span>
-              <div class="score-stars" data-target="b_helpfulness"></div>
-            </div>
-            <div class="score-row">
-              <span class="score-label">Personalization</span>
-              <div class="score-stars" data-target="b_personalization"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 标签系统 -->
-        <div class="annot-block">
-          <div class="annot-title">Tags</div>
-          <div class="tag-group" id="tagGroup"></div>
         </div>
 
         <!-- 人工备注 -->
         <div class="annot-block">
           <div class="annot-title">Annotator Notes</div>
-          <textarea id="noteInput" class="note-input" rows="3" placeholder="例如：Response A explains concept better. Response B gives wrong example."></textarea>
+          <textarea id="noteInput" class="note-input" rows="3" placeholder="Example: Response A is more targeted and actionable."></textarea>
         </div>
 
       </section>
@@ -140,7 +122,7 @@
       <div class="nav-index">
         <input type="number" id="jumpInput" min="1" value="1" />
         <span id="navIndexText">/ 0</span>
-        <button id="jumpBtn" class="nav-btn small">跳转</button>
+        <button id="jumpBtn" class="nav-btn small">Jump</button>
       </div>
       <button id="saveBtn" class="nav-btn save-btn">Save</button>
       <button id="nextBtn" class="nav-btn">Next →</button>

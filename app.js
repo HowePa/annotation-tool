@@ -8,26 +8,14 @@
 
   /* ---------- 配置 ---------- */
   // 默认标签集，支持后续扩展（可在 DEFAULT_TAGS 增删）
-  const DEFAULT_TAGS = [
-    "factual error",
-    "too generic",
-    "too verbose",
-    "lacks explanation",
-    "good personalization",
-    "good example",
-    "actionable advice",
-    "wrong assumption",
-    "unclear"
-  ];
-
-  const SCORE_DIMS = ["correctness", "helpfulness", "personalization"];
-  const STORAGE_KEY = "pairwise_annotation_progress_v1";
-  const WINNER_VALUES = ["A", "B", "Tie", "Both bad"];
+  const STORAGE_KEY_PREFIX = "pairwise_annotation_progress_v2";
+  const WINNER_VALUES = ["A", "B", "Tie", "None"];
 
   /* ---------- 全局状态 ---------- */
   let dataset = [];          // 当前加载的全部数据
   let currentIndex = 0;      // 当前查看的索引
   let fileName = "";         // 当前文件名
+  let fileStorageScope = ""; // 当前文件的存储作用域
   // 标注结果：{ reflection_id: { winner, score_a, score_b, tags, note } }
   let annotations = {};
 
@@ -51,8 +39,13 @@
     answerB: $("answerB"),
     badgeA: $("badgeA"),
     badgeB: $("badgeB"),
+    priorReflectionsToggle: $("priorReflectionsToggle"),
+    priorReflectionsCount: $("priorReflectionsCount"),
+    priorReflectionsList: $("priorReflectionsList"),
+    sameLectureToggle: $("sameLectureToggle"),
+    sameLectureCount: $("sameLectureCount"),
+    sameLectureList: $("sameLectureList"),
     winnerGroup: $("winnerGroup"),
-    tagGroup: $("tagGroup"),
     noteInput: $("noteInput"),
     prevBtn: $("prevBtn"),
     nextBtn: $("nextBtn"),
@@ -115,6 +108,12 @@
     return "<p>" + html + "</p>";
   }
 
+  function escapeAndJoinList(items) {
+    return items
+      .map((item) => `<li>${escapeHtml(item)}</li>`)
+      .join("");
+  }
+
   /* ============================================================
    * 字段自动识别
    * ============================================================ */
@@ -142,9 +141,19 @@
   /* ============================================================
    * LocalStorage 自动保存
    * ============================================================ */
-  function loadAnnotations() {
+  function getStorageKey(scope) {
+    return STORAGE_KEY_PREFIX + ":" + encodeURIComponent(scope || "default");
+  }
+
+  function buildStorageScope(file) {
+    if (!file) return "default";
+    const parts = [file.name || "unknown", file.size || 0, file.lastModified || 0];
+    return parts.join("::");
+  }
+
+  function loadAnnotations(scope) {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(getStorageKey(scope));
       annotations = raw ? JSON.parse(raw) : {};
     } catch (e) {
       annotations = {};
@@ -152,8 +161,9 @@
   }
 
   function persistAnnotations() {
+    if (!fileStorageScope) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(annotations));
+      localStorage.setItem(getStorageKey(fileStorageScope), JSON.stringify(annotations));
     } catch (e) {
       console.warn("LocalStorage 保存失败：", e);
     }
@@ -173,12 +183,8 @@
    * 收集 / 填充当前条目的标注
    * ============================================================ */
   function collectCurrentAnnotation() {
-    const winner = getSelectedWinner();
     return {
-      winner: winner,
-      score_a: getScore("a"),
-      score_b: getScore("b"),
-      tags: getCheckedTags(),
+      winner: getSelectedWinner(),
       note: el.noteInput.value
     };
   }
@@ -186,25 +192,6 @@
   function getSelectedWinner() {
     const checked = el.winnerGroup.querySelector("input[name='winner']:checked");
     return checked ? checked.value : "";
-  }
-
-  function getScore(prefix) {
-    const score = {};
-    SCORE_DIMS.forEach((dim) => {
-      const container = document.querySelector(`.score-stars[data-target="${prefix}_${dim}"]`);
-      if (container) {
-        score[dim] = parseInt(container.dataset.value || "0", 10);
-      }
-    });
-    return score;
-  }
-
-  function getCheckedTags() {
-    const tags = [];
-    el.tagGroup.querySelectorAll(".tag-item input:checked").forEach((cb) => {
-      tags.push(cb.value);
-    });
-    return tags;
   }
 
   // 用指定标注数据回填 UI
@@ -215,18 +202,6 @@
     });
     updateWinnerVisual();
 
-    // 评分
-    SCORE_DIMS.forEach((dim) => {
-      setScore("a", dim, ann.score_a ? (ann.score_a[dim] || 0) : 0);
-      setScore("b", dim, ann.score_b ? (ann.score_b[dim] || 0) : 0);
-    });
-
-    // 标签
-    el.tagGroup.querySelectorAll(".tag-item input").forEach((cb) => {
-      cb.checked = ann.tags ? ann.tags.includes(cb.value) : false;
-    });
-    updateTagVisual();
-
     // 备注
     el.noteInput.value = ann.note || "";
 
@@ -236,75 +211,9 @@
 
   function resetAnnotationUI() {
     el.winnerGroup.querySelectorAll("input[name='winner']").forEach((r) => (r.checked = false));
-    SCORE_DIMS.forEach((dim) => {
-      setScore("a", dim, 0);
-      setScore("b", dim, 0);
-    });
-    el.tagGroup.querySelectorAll(".tag-item input").forEach((cb) => (cb.checked = false));
     el.noteInput.value = "";
     updateWinnerVisual();
-    updateTagVisual();
     updateChoiceBadge();
-  }
-
-  /* ============================================================
-   * 评分星级
-   * ============================================================ */
-  function setScore(prefix, dim, value) {
-    const container = document.querySelector(`.score-stars[data-target="${prefix}_${dim}"]`);
-    if (!container) return;
-    container.dataset.value = String(value);
-    container.querySelectorAll(".star").forEach((s) => {
-      const v = parseInt(s.dataset.value, 10);
-      s.classList.toggle("active", v <= value && value > 0);
-    });
-  }
-
-  function buildStars() {
-    document.querySelectorAll(".score-stars").forEach((container) => {
-      container.dataset.value = "0";
-      container.innerHTML = "";
-      for (let i = 1; i <= 5; i++) {
-        const star = document.createElement("div");
-        star.className = "star";
-        star.textContent = i;
-        star.dataset.value = String(i);
-        star.addEventListener("click", () => {
-          const target = container.dataset.target;
-          const [prefix, dim] = target.split("_");
-          // 再次点击同一个分数则取消
-          const current = parseInt(container.dataset.value, 10);
-          const newVal = (current === i) ? 0 : i;
-          setScore(prefix, dim, newVal);
-        });
-        container.appendChild(star);
-      }
-    });
-  }
-
-  /* ============================================================
-   * 标签构建
-   * ============================================================ */
-  function buildTags() {
-    el.tagGroup.innerHTML = "";
-    DEFAULT_TAGS.forEach((tag) => {
-      const label = document.createElement("label");
-      label.className = "tag-item";
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.value = tag;
-      cb.addEventListener("change", updateTagVisual);
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode(" " + tag));
-      el.tagGroup.appendChild(label);
-    });
-  }
-
-  function updateTagVisual() {
-    el.tagGroup.querySelectorAll(".tag-item").forEach((label) => {
-      const cb = label.querySelector("input");
-      label.classList.toggle("checked", cb.checked);
-    });
   }
 
   /* ============================================================
@@ -314,12 +223,12 @@
     const winner = getSelectedWinner();
     el.winnerGroup.querySelectorAll("label").forEach((label) => {
       const input = label.querySelector("input");
-      label.classList.remove("checked-A", "checked-B", "checked-Tie", "checked-Both");
+      label.classList.remove("checked-A", "checked-B", "checked-Tie", "checked-None");
       if (input.checked) {
         if (input.value === "A") label.classList.add("checked-A");
         else if (input.value === "B") label.classList.add("checked-B");
         else if (input.value === "Tie") label.classList.add("checked-Tie");
-        else if (input.value === "Both bad") label.classList.add("checked-Both");
+        else if (input.value === "None") label.classList.add("checked-None");
       }
     });
   }
@@ -330,6 +239,25 @@
     el.badgeB.style.display = (winner === "B") ? "inline-block" : "none";
     el.answerA.classList.toggle("is-chosen", winner === "A");
     el.answerB.classList.toggle("is-chosen", winner === "B");
+  }
+
+  function renderReflectionLists(item) {
+    const prior = Array.isArray(item.prior_student_reflections) ? item.prior_student_reflections : [];
+    const sameLecture = Array.isArray(item.same_lecture_reflections) ? item.same_lecture_reflections : [];
+
+    el.priorReflectionsCount.textContent = String(prior.length);
+    el.sameLectureCount.textContent = String(sameLecture.length);
+
+    el.priorReflectionsList.innerHTML = prior.length
+      ? escapeAndJoinList(prior)
+      : '<li class="empty-list-item">No prior_student_reflections</li>';
+
+    el.sameLectureList.innerHTML = sameLecture.length
+      ? escapeAndJoinList(sameLecture)
+      : '<li class="empty-list-item">No same_lecture_reflections</li>';
+
+    el.priorReflectionsToggle.open = prior.length > 0;
+    el.sameLectureToggle.open = sameLecture.length > 0;
   }
 
   /* ============================================================
@@ -346,7 +274,7 @@
     const metaParts = [];
     const idVal = getReflectionId(item);
     if (idVal) metaParts.push("ID: " + idVal);
-    ["student_id", "lecture_id", "a_method", "b_method", "method_1", "method_2"].forEach((k) => {
+    ["student_id", "lecture_id"].forEach((k) => {
       if (item[k] != null && item[k] !== "") metaParts.push(k + ": " + item[k]);
     });
     el.metaRow.innerHTML = metaParts.map((m) => `<span>${escapeHtml(m)}</span>`).join("");
@@ -354,6 +282,9 @@
     // Response A / B（Markdown 渲染）
     el.renderedA.innerHTML = renderMarkdown(getResponseA(item));
     el.renderedB.innerHTML = renderMarkdown(getResponseB(item));
+
+    // 相关反思列表
+    renderReflectionLists(item);
 
     // 回填已有标注
     const rid = idVal || ("idx_" + currentIndex);
@@ -402,8 +333,9 @@
         }
         dataset = data;
         fileName = file.name;
+        fileStorageScope = buildStorageScope(file);
         currentIndex = 0;
-        loadAnnotations(); // 复用历史进度
+        loadAnnotations(fileStorageScope); // 同文件复用，跨文件隔离
 
         el.fileName.textContent = fileName;
         el.totalCount.textContent = dataset.length;
@@ -436,13 +368,14 @@
         reflection_id: rid,
         human_label: {
           winner: ann.winner || "",
-          response_a_score: ann.score_a || {},
-          response_b_score: ann.score_b || {},
-          tags: ann.tags || [],
           comment: ann.note || ""
         }
       });
     });
+
+    const exportName = fileName
+      ? fileName.replace(/\.json$/i, "") + "_result.json"
+      : "annotation_result.json";
 
     const blob = new Blob([JSON.stringify(result, null, 2)], {
       type: "application/json"
@@ -450,12 +383,12 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "annotation_result.json";
+    a.download = exportName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast("已导出 annotation_result.json（" + result.length + " 条）");
+    showToast("Exported " + exportName + " (" + result.length + " items)");
   }
 
   /* ============================================================
@@ -520,7 +453,7 @@
     else if (e.key === "1") { selectWinner("A"); }
     else if (e.key === "2") { selectWinner("B"); }
     else if (e.key === "3") { selectWinner("Tie"); }
-    else if (e.key === "4") { selectWinner("Both bad"); }
+    else if (e.key === "4") { selectWinner("None"); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
       e.preventDefault(); saveCurrent(); showToast("已保存");
     }
@@ -586,9 +519,7 @@
    * 初始化
    * ============================================================ */
   function init() {
-    loadAnnotations();
-    buildStars();
-    buildTags();
+    annotations = {};
     bindEvents();
   }
 
